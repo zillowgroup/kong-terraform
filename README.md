@@ -1,14 +1,14 @@
-# ZG Kong API Gateway Cluster Terraform Module
+# ZG Kong Cluster Terraform Module
 
 Required variables:
-    * vpc_name               VPC Name for the AWS account and region specified
-    * environment            Resource environment tag (i.e. dev, stage, prod)
-    * ec2_instance_type      EC2 instance type
-    * ec2_key_name           AWS SSH Key
-    * ssl_cert_external      SSL certificate domain name for the external API HTTPS listener
-    * ssl_cert_internal      SSL certificate domain name for the internal API HTTPS listener
-    * ssl_cert_internal_gui  SSL certificate domain name for the GUI HTTPS listener
-    * db_instance_count      Number of database instances (0 to leverage an existing db)
+    vpc_name               VPC Name for the AWS account and region specified
+    environment            Resource environment tag (i.e. dev, stage, prod)
+    ec2_instance_type      EC2 instance type
+    ec2_key_name           AWS SSH Key
+    ssl_cert_external      SSL certificate domain name for the external API HTTPS listener
+    ssl_cert_internal      SSL certificate domain name for the internal API HTTPS listener
+    ssl_cert_internal_gui  SSL certificate domain name for the GUI HTTPS listener
+    db_instance_count      Number of database instances (0 to leverage an existing db)
 
 Create the resources in AWS:
 
