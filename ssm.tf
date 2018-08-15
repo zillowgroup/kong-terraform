@@ -2,7 +2,7 @@ resource "aws_kms_key" "kong" {
   description = "${var.service}/${var.environment}"
 
   tags = "${merge(
-    map("Name", format("%s-%s", var.service, var.environment),
+    map("Name", format("%s-%s", var.service, var.environment)),
     map("Environment", var.environment),
     map("Description", var.description),
     map("Service", var.service),

@@ -14,7 +14,7 @@ resource "null_resource" "tags" {
 
 resource "aws_launch_configuration" "kong" {
   name_prefix          = "${var.service}-${var.environment}-"
-  image_id             = "${var.ec2_ami}"
+  image_id             = "${var.ec2_ami[data.aws_region.current.name]}"
   instance_type        = "${var.ec2_instance_type}"
   iam_instance_profile = "${aws_iam_instance_profile.kong.name}"
   key_name             = "${var.ec2_key_name}"
@@ -37,6 +37,10 @@ resource "aws_launch_configuration" "kong" {
   lifecycle {
     create_before_destroy = true
   }
+
+  depends_on = [
+    "aws_rds_cluster.kong"
+  ]
 }
 
 resource "aws_autoscaling_group" "kong" {
@@ -67,4 +71,8 @@ resource "aws_autoscaling_group" "kong" {
       )),
       local.tags
   )}"]
+
+  depends_on = [
+    "aws_rds_cluster.kong"
+  ]
 }

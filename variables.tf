@@ -99,7 +99,7 @@ variable "enable_ee" {
 # EC2 settings
 
 # https://wiki.ubuntu.com/Minimal
-variable "ec2_ami_map" {
+variable "ec2_ami" {
   description = "Map of Ubuntu Minimal AMIs by region"
   type        = "map"
 
@@ -165,14 +165,21 @@ variable "asg_health_check_grace_period" {
 }
 
 # Kong packages
-variable ee_pkg {
+variable "ee_enabled" {
+  description = "Boolean to enable Enterprise Edition"
+  type       = "string"
+
+  default = false
+}
+
+variable "ee_pkg" {
   description = "Filename of the Enterprise Edition package"
   type        = "string"
 
   default = "kong-enterprise-edition-0.31-1.zesty.all.deb"
 }
 
-variable ce_pkg {
+variable "ce_pkg" {
   description = "Filename of the Community Edition package"
   type        = "string"
 

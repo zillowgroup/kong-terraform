@@ -1,6 +1,7 @@
 # ZG Kong Cluster Terraform Module
 
 Required variables:
+
     vpc_name               VPC Name for the AWS account and region specified
     environment            Resource environment tag (i.e. dev, stage, prod)
     ec2_instance_type      EC2 instance type

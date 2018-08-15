@@ -7,6 +7,8 @@ data "aws_vpc" "vpc" {
   }
 }
 
+data "aws_region" "current" {}
+
 data "aws_subnet_ids" "public" {
   vpc_id = "${data.aws_vpc.vpc.id}"
 

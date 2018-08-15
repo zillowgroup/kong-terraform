@@ -24,14 +24,13 @@ resource "aws_alb_target_group" "external" {
     unhealthy_threshold = "${var.health_check_unhealthy_threshold}"
   }
 
-  tags = {
-    Name        = "${var.service}-${var.environment}-external"
-    Description = "${var.description}"
-    Environment = "${var.environment}"
-    Owner       = "${var.owner}"
-    Service     = "${var.service}"
-    Team        = "${var.team}"
-  }
+  tags = "${merge(
+    map("Name", format("%s-%s-external", var.service, var.environment)),
+    map("Environment", var.environment),
+    map("Description", var.description),
+    map("Service", var.service),
+    var.tags
+  )}"
 }
 
 resource "aws_alb" "external" {
@@ -48,14 +47,13 @@ resource "aws_alb" "external" {
   enable_deletion_protection = "${var.enable_deletion_protection}"
   idle_timeout               = "${var.idle_timeout}"
 
-  tags = {
-    Name        = "${var.service}-${var.environment}-external"
-    Description = "${var.description}"
-    Environment = "${var.environment}"
-    Owner       = "${var.owner}"
-    Service     = "${var.service}"
-    Team        = "${var.team}"
-  }
+  tags = "${merge(
+    map("Name", format("%s-%s-external", var.service, var.environment)),
+    map("Environment", var.environment),
+    map("Description", var.description),
+    map("Service", var.service),
+    var.tags
+  )}"
 }
 
 resource "aws_alb_listener" "external-https" {
@@ -90,14 +88,13 @@ resource "aws_alb_target_group" "internal" {
     unhealthy_threshold = "${var.health_check_unhealthy_threshold}"
   }
 
-  tags = {
-    Name        = "${var.service}-${var.environment}-internal"
-    Description = "${var.description}"
-    Environment = "${var.environment}"
-    Owner       = "${var.owner}"
-    Service     = "${var.service}"
-    Team        = "${var.team}"
-  }
+  tags = "${merge(
+    map("Name", format("%s-%s-internal", var.service, var.environment)),
+    map("Environment", var.environment),
+    map("Description", var.description),
+    map("Service", var.service),
+    var.tags
+  )}"
 }
 
 resource "aws_alb_target_group" "internal-admin" {
@@ -115,14 +112,13 @@ resource "aws_alb_target_group" "internal-admin" {
     unhealthy_threshold = "${var.health_check_unhealthy_threshold}"
   }
 
-  tags = {
-    Name        = "${var.service}-${var.environment}-internal-admin"
-    Description = "${var.description}"
-    Environment = "${var.environment}"
-    Owner       = "${var.owner}"
-    Service     = "${var.service}"
-    Team        = "${var.team}"
-  }
+  tags = "${merge(
+    map("Name", format("%s-%s-internal-admin", var.service, var.environment)),
+    map("Environment", var.environment),
+    map("Description", var.description),
+    map("Service", var.service),
+    var.tags
+  )}"
 }
 
 resource "aws_alb_target_group" "internal-gui" {
@@ -140,14 +136,13 @@ resource "aws_alb_target_group" "internal-gui" {
     unhealthy_threshold = "${var.health_check_unhealthy_threshold}"
   }
 
-  tags = {
-    Name        = "${var.service}-${var.environment}-internal-gui"
-    Description = "${var.description}"
-    Environment = "${var.environment}"
-    Owner       = "${var.owner}"
-    Service     = "${var.service}"
-    Team        = "${var.team}"
-  }
+  tags = "${merge(
+    map("Name", format("%s-%s-internal-gui", var.service, var.environment)),
+    map("Environment", var.environment),
+    map("Description", var.description),
+    map("Service", var.service),
+    var.tags
+  )}"
 }
 
 resource "aws_alb" "internal" {
@@ -162,14 +157,13 @@ resource "aws_alb" "internal" {
   enable_deletion_protection = "${var.enable_deletion_protection}"
   idle_timeout               = "${var.idle_timeout}"
 
-  tags = {
-    Name        = "${var.service}-${var.environment}-internal"
-    Description = "${var.description}"
-    Environment = "${var.environment}"
-    Owner       = "${var.owner}"
-    Service     = "${var.service}"
-    Team        = "${var.team}"
-  }
+  tags = "${merge(
+    map("Name", format("%s-%s-internal", var.service, var.environment)),
+    map("Environment", var.environment),
+    map("Description", var.description),
+    map("Service", var.service),
+    var.tags
+  )}"
 }
 
 resource "aws_alb_listener" "internal-http" {

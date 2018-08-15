@@ -1,14 +1,16 @@
 data "template_file" "cloud-init" {
-  template = "${file("cloud-init.cfg")}"
+  template = "${file("${path.module}/cloud-init.cfg")}"
 }
 
 data "template_file" "shell-script" {
-  template = "${file("cloud-init.sh")}"
+  template = "${file("${path.module}/cloud-init.sh")}"
 
   vars {
-    REGION         = "${var.aws_region}"
-    PARAMETER_PATH = "/${var.service}/${var.environment}"
     DB_USER        = "${replace(format("%s_%s", var.service, var.environment), "-", "_")}"
+    CE_PKG         = "${var.ce_pkg}"
+    EE_PKG         = "${var.ee_pkg}"
+    PARAMETER_PATH = "/${var.service}/${var.environment}"
+    REGION         = "${data.aws_region.current.name}"
   }
 }
 

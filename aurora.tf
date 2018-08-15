@@ -10,11 +10,11 @@ resource "aws_rds_cluster" "kong" {
   db_cluster_parameter_group_name = "${var.service}-${var.environment}-cluster"
 
   vpc_security_group_ids = [
-    "${aws_security_group.kong-postgresql.id}",
+    "${aws_security_group.postgresql.id}",
   ]
 
   tags = "${merge(
-    map("Name", format("%s-%s", var.service, var.environment),
+    map("Name", format("%s-%s", var.service, var.environment)),
     map("Environment", var.environment),
     map("Description", var.description),
     map("Service", var.service),
@@ -27,13 +27,13 @@ resource "aws_rds_cluster_instance" "kong" {
   identifier         = "${var.service}-${var.environment}-${count.index}"
   cluster_identifier = "${aws_rds_cluster.kong.id}"
   engine             = "aurora-postgresql"
-  instance_class     = "${var.instance_class}"
+  instance_class     = "${var.db_instance_class}"
 
-  db_subnet_group_name    = "${var.db_subnet_group_name}"
+  db_subnet_group_name    = "${var.db_subnet_group}"
   db_parameter_group_name = "${var.service}-${var.environment}-instance"
 
   tags = "${merge(
-    map("Name", format("%s-%s", var.service, var.environment),
+    map("Name", format("%s-%s", var.service, var.environment)),
     map("Environment", var.environment),
     map("Description", var.description),
     map("Service", var.service),
@@ -41,12 +41,13 @@ resource "aws_rds_cluster_instance" "kong" {
   )}"
 }
 
-resource "aws_rdb_cluster_parameter_group" "kong" {
+resource "aws_rds_cluster_parameter_group" "kong" {
+  count  = "${var.db_instance_count > 0 ? 1 : 0}"
   name   = "${var.service}-${var.environment}-cluster"
   family = "aurora-postgresql9.6"
 
   tags = "${merge(
-    map("Name", format("%s-%s-cluster", var.service, var.environment),
+    map("Name", format("%s-%s-cluster", var.service, var.environment)),
     map("Environment", var.environment),
     map("Description", var.description),
     map("Service", var.service),
@@ -55,11 +56,12 @@ resource "aws_rdb_cluster_parameter_group" "kong" {
 }
 
 resource "aws_db_parameter_group" "kong" {
+  count  = "${var.db_instance_count > 0 ? 1 : 0}"
   name   = "${var.service}-${var.environment}-instance"
   family = "postgres9.6"
 
   tags = "${merge(
-    map("Name", format("%s-%s-instance", var.service, var.environment),
+    map("Name", format("%s-%s-instance", var.service, var.environment)),
     map("Environment", var.environment),
     map("Description", var.description),
     map("Service", var.service),

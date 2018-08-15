@@ -4,14 +4,13 @@ resource "aws_security_group" "postgresql" {
   name        = "${var.service}-${var.environment}-postgresql"
   vpc_id      = "${data.aws_vpc.vpc.id}"
 
-  tags {
-    Name        = "${var.service}-${var.environment}-postgresql"
-    Description = "${var.description}"
-    Environment = "${var.environment}"
-    Owner       = "${var.owner}"
-    Service     = "${var.service}"
-    Team        = "${var.team}"
-  }
+  tags = "${merge(
+    map("Name", format("%s-%s-postgresql", var.service, var.environment)),
+    map("Environment", var.environment),
+    map("Description", var.description),
+    map("Service", var.service),
+    var.tags
+  )}"
 }
 
 resource "aws_security_group_rule" "postgresql-ingress-kong" {
@@ -42,14 +41,13 @@ resource "aws_security_group" "redis" {
   name        = "${var.service}-${var.environment}-redis"
   vpc_id      = "${data.aws_vpc.vpc.id}"
 
-  tags {
-    Name        = "${var.service}-${var.environment}-redis"
-    Description = "${var.description}"
-    Environment = "${var.environment}"
-    Owner       = "${var.owner}"
-    Service     = "${var.service}"
-    Team        = "${var.team}"
-  }
+  tags = "${merge(
+    map("Name", format("%s-%s-redis", var.service, var.environment)),
+    map("Environment", var.environment),
+    map("Description", var.description),
+    map("Service", var.service),
+    var.tags
+  )}"
 }
 
 resource "aws_security_group_rule" "redis-ingress-kong" {
@@ -80,14 +78,13 @@ resource "aws_security_group" "kong" {
   name        = "${var.service}-${var.environment}"
   vpc_id      = "${data.aws_vpc.vpc.id}"
 
-  tags {
-    Name        = "${var.service}-${var.environment}"
-    Description = "${var.description}"
-    Environment = "${var.environment}"
-    Owner       = "${var.owner}"
-    Service     = "${var.service}"
-    Team        = "${var.team}"
-  }
+  tags = "${merge(
+    map("Name", format("%s-%s", var.service, var.environment)),
+    map("Environment", var.environment),
+    map("Description", var.description),
+    map("Service", var.service),
+    var.tags
+  )}"
 }
 
 resource "aws_security_group_rule" "kong-ingress-admin-bastion" {
@@ -191,13 +188,13 @@ resource "aws_security_group" "external-lb" {
   name        = "${var.service}-${var.environment}-external-lb"
   vpc_id      = "${data.aws_vpc.vpc.id}"
 
-  tags {
-    Name        = "${var.service}-${var.environment}-external-lb"
-    Description = "${var.description}"
-    Owner       = "${var.owner}"
-    Service     = "${var.service}"
-    Team        = "${var.team}"
-  }
+  tags = "${merge(
+    map("Name", format("%s-%s-external-lb", var.service, var.environment)),
+    map("Environment", var.environment),
+    map("Description", var.description),
+    map("Service", var.service),
+    var.tags
+  )}"
 }
 
 resource "aws_security_group_rule" "external-lb-ingress-api" {
@@ -239,14 +236,13 @@ resource "aws_security_group" "internal-lb" {
   name        = "${var.service}-${var.environment}-internal-lb"
   vpc_id      = "${data.aws_vpc.vpc.id}"
 
-  tags {
-    Name        = "${var.service}-${var.environment}-internal-lb"
-    Description = "${var.description}"
-    Environment = "${var.environment}"
-    Owner       = "${var.owner}"
-    Service     = "${var.service}"
-    Team        = "${var.team}"
-  }
+  tags = "${merge(
+    map("Name", format("%s-%s-internal-lb", var.service, var.environment)),
+    map("Environment", var.environment),
+    map("Description", var.description),
+    map("Service", var.service),
+    var.tags
+  )}"
 }
 
 resource "aws_security_group_rule" "internal-lb-ingress-kong-admin" {
