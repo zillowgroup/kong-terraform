@@ -318,6 +318,8 @@ variable "db_instance_class" {
 variable "db_instance_count" {
   description = "Number of database instances (0 to leverage an existing db)"
   type        = "string"
+
+  default = 2
 }
 
 variable "db_host" {
@@ -341,11 +343,11 @@ variable "db_password" {
   default = "zg-kong-2-1"
 }
 
-variable "db_subnet_group" {
+variable "db_subnets" {
   description = "Database instance subnet group name"
   type        = "string"
 
-  default = "db_subnets"
+  default = "db-subnets"
 }
 
 variable "db_backup_retention_period" {
@@ -377,7 +379,7 @@ variable "redis_instance_count" {
   default = 2
 }
 
-variable "redis_subnet_group" {
+variable "redis_subnets" {
   description = "Redis cluster subnet group name"
   type        = "string"
 

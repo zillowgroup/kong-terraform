@@ -1,12 +1,16 @@
-data "aws_acm_certificate" "api-cert" {
+data "aws_acm_certificate" "external-cert" {
   domain = "${var.ssl_cert_external}"
 }
 
-data "aws_acm_certificate" "gui-cert" {
+data "aws_acm_certificate" "internal-cert" {
   domain = "${var.ssl_cert_internal}"
 }
 
-# External Kong endpoint - HTTPS only 
+data "aws_acm_certificate" "gui-cert" {
+  domain = "${var.ssl_cert_internal_gui}"
+}
+
+# External - HTTPS only
 resource "aws_alb_target_group" "external" {
   count = "${var.enable_external_lb}"
 
@@ -64,7 +68,7 @@ resource "aws_alb_listener" "external-https" {
   protocol          = "HTTPS"
 
   ssl_policy      = "${var.ssl_policy}"
-  certificate_arn = "${data.aws_acm_certificate.api-cert.arn}"
+  certificate_arn = "${data.aws_acm_certificate.external-cert.arn}"
 
   default_action {
     target_group_arn = "${aws_alb_target_group.external.arn}"
@@ -72,7 +76,7 @@ resource "aws_alb_listener" "external-https" {
   }
 }
 
-# Internal Kong endpoint - HTTP only by default
+# Internal
 resource "aws_alb_target_group" "internal" {
   name     = "${var.service}-${var.environment}-internal"
   port     = 8000
@@ -177,19 +181,16 @@ resource "aws_alb_listener" "internal-http" {
   }
 }
 
-# SSL listeners if using the Enterprise Edition GUI
-resource "aws_alb_listener" "internal-gui" {
-  count = "${var.ee_enabled}"
-
+resource "aws_alb_listener" "internal-https" {
   load_balancer_arn = "${aws_alb.internal.arn}"
   port              = "443"
   protocol          = "HTTPS"
 
   ssl_policy      = "${var.ssl_policy}"
-  certificate_arn = "${data.aws_acm_certificate.gui-cert.arn}"
+  certificate_arn = "${data.aws_acm_certificate.internal-cert.arn}"
 
   default_action {
-    target_group_arn = "${aws_alb_target_group.internal-gui.arn}"
+    target_group_arn = "${aws_alb_target_group.internal.arn}"
     type             = "forward"
   }
 }
@@ -206,6 +207,22 @@ resource "aws_alb_listener" "internal-admin" {
 
   default_action {
     target_group_arn = "${aws_alb_target_group.internal-admin.arn}"
+    type             = "forward"
+  }
+}
+
+resource "aws_alb_listener" "internal-gui" {
+  count = "${var.ee_enabled}"
+
+  load_balancer_arn = "${aws_alb.internal.arn}"
+  port              = "8445"
+  protocol          = "HTTPS"
+
+  ssl_policy      = "${var.ssl_policy}"
+  certificate_arn = "${data.aws_acm_certificate.gui-cert.arn}"
+
+  default_action {
+    target_group_arn = "${aws_alb_target_group.internal-gui.arn}"
     type             = "forward"
   }
 }

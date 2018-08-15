@@ -11,7 +11,7 @@ resource "aws_elasticache_replication_group" "kong" {
   parameter_group_name  = "${var.service}-${var.environment}"
   port                  = 6379
 
-  subnet_group_name  = "${var.redis_subnet_group}"
+  subnet_group_name  = "${var.redis_subnets}"
   security_group_ids = ["${aws_security_group.redis.id}"]
 
   tags = "${merge(
@@ -26,4 +26,6 @@ resource "aws_elasticache_replication_group" "kong" {
 resource "aws_elasticache_parameter_group" "kong" {
   name   = "${var.service}-${var.environment}"
   family = "redis4.0"
+
+  description = "${var.description}"
 }
