@@ -17,10 +17,14 @@ resource "aws_kms_alias" "kong" {
 
 resource "aws_ssm_parameter" "ee-bintray-auth" {
   name  = "/${var.service}/${var.environment}/ee/bintray-auth"
-  type  = "String"
+  type  = "SecureString"
   value = "placeholder"
 
-  overwrite = true
+  key_id = "${aws_kms_alias.kong.target_key_arn}"
+
+  lifecycle {
+    ignore_changes = ["value"]
+  }
 }
 
 resource "aws_ssm_parameter" "ee-license" {
