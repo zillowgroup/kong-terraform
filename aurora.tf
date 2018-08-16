@@ -60,7 +60,7 @@ resource "aws_rds_cluster_parameter_group" "kong" {
 resource "aws_db_parameter_group" "kong" {
   count  = "${var.db_instance_count > 0 ? 1 : 0}"
   name   = "${var.service}-${var.environment}-instance"
-  family = "postgres9.6"
+  family = "aurora-postgresql9.6"
 
   description = "${var.description}"
 
