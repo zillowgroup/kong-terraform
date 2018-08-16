@@ -245,20 +245,7 @@ resource "aws_security_group" "internal-lb" {
   )}"
 }
 
-resource "aws_security_group_rule" "internal-lb-ingress-kong-admin" {
-  count = "${var.ee_enabled}"
-
-  security_group_id = "${aws_security_group.internal-lb.id}"
-
-  type      = "ingress"
-  from_port = 443
-  to_port   = 443
-  protocol  = "tcp"
-
-  cidr_blocks = ["${var.gui_cidr_blocks}"]
-}
-
-resource "aws_security_group_rule" "internal-lb-ingress-kong-api" {
+resource "aws_security_group_rule" "internal-lb-ingress-kong-http-api" {
   security_group_id = "${aws_security_group.internal-lb.id}"
 
   type      = "ingress"
@@ -269,7 +256,18 @@ resource "aws_security_group_rule" "internal-lb-ingress-kong-api" {
   cidr_blocks = ["${var.internal_cidr_blocks}"]
 }
 
-resource "aws_security_group_rule" "internal-lb-ingress-kong-gui" {
+resource "aws_security_group_rule" "internal-lb-ingress-kong-https-api" {
+  security_group_id = "${aws_security_group.internal-lb.id}"
+
+  type      = "ingress"
+  from_port = 443
+  to_port   = 443
+  protocol  = "tcp"
+
+  cidr_blocks = ["${var.internal_cidr_blocks}"]
+}
+
+resource "aws_security_group_rule" "internal-lb-ingress-kong-admin" {
   count = "${var.ee_enabled}"
 
   security_group_id = "${aws_security_group.internal-lb.id}"
@@ -277,6 +275,19 @@ resource "aws_security_group_rule" "internal-lb-ingress-kong-gui" {
   type      = "ingress"
   from_port = 8444
   to_port   = 8444
+  protocol  = "tcp"
+
+  cidr_blocks = ["${var.gui_cidr_blocks}"]
+}
+
+resource "aws_security_group_rule" "internal-lb-ingress-kong-gui" {
+  count = "${var.ee_enabled}"
+
+  security_group_id = "${aws_security_group.internal-lb.id}"
+
+  type      = "ingress"
+  from_port = 8445
+  to_port   = 8445
   protocol  = "tcp"
 
   cidr_blocks = ["${var.gui_cidr_blocks}"]
