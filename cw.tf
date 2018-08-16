@@ -1,5 +1,5 @@
 module "kong-external-alb-cw" {
-  source = "./cw/alb"
+  source = "github.com/zillowgroup/kong-terraform/cw/alb"
 
   enable        = "${var.enable_external_lb}"
   load_balancer = "${coalesce(join("", aws_alb.external.*.arn_suffix), "none")}"
@@ -11,7 +11,7 @@ module "kong-external-alb-cw" {
 }
 
 module "kong-internal-alb-cw" {
-  source = "./cw/alb"
+  source = "github.com/zillowgroup/kong-terraform/cw/alb"
 
   enable        = "${var.enable_external_lb}"
   load_balancer = "${coalesce(join("", aws_alb.internal.*.arn_suffix), "none")}"
