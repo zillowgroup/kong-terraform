@@ -71,13 +71,15 @@ resource "aws_alb_listener" "external-https" {
   certificate_arn = "${data.aws_acm_certificate.external-cert.arn}"
 
   default_action {
-    target_group_arn = "${aws_alb_target_group.external.arn}"
+    target_group_arn = "${element(aws_alb_target_group.external.*.arn, 0)}"
     type             = "forward"
   }
 }
 
 # Internal
 resource "aws_alb_target_group" "internal" {
+  count = "${var.enable_internal_lb}"
+
   name     = "${var.service}-${var.environment}-internal"
   port     = 8000
   protocol = "HTTP"
@@ -102,6 +104,8 @@ resource "aws_alb_target_group" "internal" {
 }
 
 resource "aws_alb_target_group" "internal-admin" {
+  count = "${var.enable_ee}"
+
   name     = "${var.service}-${var.environment}-internal-admin"
   port     = 8001
   protocol = "HTTP"
@@ -126,6 +130,8 @@ resource "aws_alb_target_group" "internal-admin" {
 }
 
 resource "aws_alb_target_group" "internal-gui" {
+  count = "${var.enable_ee}"
+
   name     = "${var.service}-${var.environment}-internal-gui"
   port     = 8002
   protocol = "HTTP"
@@ -150,6 +156,8 @@ resource "aws_alb_target_group" "internal-gui" {
 }
 
 resource "aws_alb" "internal" {
+  count = "${var.enable_internal_lb}"
+
   name     = "${var.service}-${var.environment}-internal"
   internal = true
   subnets  = ["${data.aws_subnet_ids.private.ids}"]
@@ -171,17 +179,21 @@ resource "aws_alb" "internal" {
 }
 
 resource "aws_alb_listener" "internal-http" {
+  count = "${var.enable_internal_lb}"
+
   load_balancer_arn = "${aws_alb.internal.arn}"
   port              = "80"
   protocol          = "HTTP"
 
   default_action {
-    target_group_arn = "${aws_alb_target_group.internal.arn}"
+    target_group_arn = "${element(aws_alb_target_group.internal.*.arn, 0)}"
     type             = "forward"
   }
 }
 
 resource "aws_alb_listener" "internal-https" {
+  count = "${var.enable_internal_lb}"
+
   load_balancer_arn = "${aws_alb.internal.arn}"
   port              = "443"
   protocol          = "HTTPS"
@@ -190,13 +202,13 @@ resource "aws_alb_listener" "internal-https" {
   certificate_arn = "${data.aws_acm_certificate.internal-cert.arn}"
 
   default_action {
-    target_group_arn = "${aws_alb_target_group.internal.arn}"
+    target_group_arn = "${element(aws_alb_target_group.internal.*.arn, 0)}"
     type             = "forward"
   }
 }
 
 resource "aws_alb_listener" "internal-admin" {
-  count = "${var.ee_enabled}"
+  count = "${var.enable_ee}"
 
   load_balancer_arn = "${aws_alb.internal.arn}"
   port              = "8444"
@@ -212,7 +224,7 @@ resource "aws_alb_listener" "internal-admin" {
 }
 
 resource "aws_alb_listener" "internal-gui" {
-  count = "${var.ee_enabled}"
+  count = "${var.enable_ee}"
 
   load_balancer_arn = "${aws_alb.internal.arn}"
   port              = "8445"

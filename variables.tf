@@ -165,13 +165,6 @@ variable "asg_health_check_grace_period" {
 }
 
 # Kong packages
-variable "ee_enabled" {
-  description = "Boolean to enable Enterprise Edition"
-  type       = "string"
-
-  default = false
-}
-
 variable "ee_pkg" {
   description = "Filename of the Enterprise Edition package"
   type        = "string"

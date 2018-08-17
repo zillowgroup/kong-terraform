@@ -145,7 +145,7 @@ resource "aws_security_group_rule" "kong-api-ingress-internal-lb" {
 }
 
 resource "aws_security_group_rule" "kong-gui-ingress-internal-lb" {
-  count = "${var.ee_enabled}"
+  count = "${var.enable_ee}"
 
   security_group_id = "${aws_security_group.kong.id}"
 
@@ -268,7 +268,7 @@ resource "aws_security_group_rule" "internal-lb-ingress-kong-https-api" {
 }
 
 resource "aws_security_group_rule" "internal-lb-ingress-kong-admin" {
-  count = "${var.ee_enabled}"
+  count = "${var.enable_ee}"
 
   security_group_id = "${aws_security_group.internal-lb.id}"
 
@@ -281,7 +281,7 @@ resource "aws_security_group_rule" "internal-lb-ingress-kong-admin" {
 }
 
 resource "aws_security_group_rule" "internal-lb-ingress-kong-gui" {
-  count = "${var.ee_enabled}"
+  count = "${var.enable_ee}"
 
   security_group_id = "${aws_security_group.internal-lb.id}"
 
