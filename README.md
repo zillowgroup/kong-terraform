@@ -18,8 +18,7 @@ Example main.tf:
     }
 
     module "kong" {
-      #source = "github.com/zillowgroup/kong-terraform"
-      source = "/home/dennisk/git/kong-terraform"
+      source = "github.com/zillowgroup/kong-terraform"
 
       vpc_name              = "my-vpc"
       environment           = "dev"
