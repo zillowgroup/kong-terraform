@@ -14,7 +14,7 @@ Example main.tf:
 
     provider "aws" {
       region  = "us-west-2"
-      profile = "zillow-dev"
+      profile = "dev"
     }
 
     module "kong" {

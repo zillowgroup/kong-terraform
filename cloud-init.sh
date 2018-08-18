@@ -16,17 +16,8 @@ echo unattended-upgrades unattended-upgrades/enable_auto_updates boolean true \
 dpkg-reconfigure -f noninteractive unattended-upgrades
 echo "Done."
 
-# Update awscli
-echo "Upgrading AWS cli"
-pip3 install --upgrade awscli
-
 # Install kongfig
 echo "Installing Kongfig"
-curl -s https://deb.nodesource.com/gpgkey/nodesource.gpg.key | apt-key add -
-echo "deb https://deb.nodesource.com/node_9.x stretch main" \
-    > /etc/apt/sources.list.d/nodejs.list
-apt-get update
-apt install -y nodejs
 npm install -g kongfig
 echo "Done."
 
@@ -34,7 +25,6 @@ echo "Done."
 echo "Installing Kong"
 EE_LICENSE=$(aws_get_parameter ee/license)
 EE_CREDS=$(aws_get_parameter ee/bintray-auth)
-echo "Auth: $EE_CREDS"
 if [ "$EE_LICENSE" != "placeholder" ]; then
     curl -L https://kong.bintray.com/kong-enterprise-edition-deb/dists/${EE_PKG} \
         -u $EE_CREDS \
@@ -417,23 +407,32 @@ cd /etc/service
 ln -s /etc/sv/kong
 echo "Done."
 
-# Enable RBAC
+# Verify Admin API is up
+RUNNING=0
+for I in 1 2 3 4 5; do
+    curl -s -I http://localhost:8001/status | grep -q "200 OK"
+    if [ $? = 0 ]; then
+        RUNNING=1
+        break
+    fi
+    sleep 1
+done
+
+if [ $RUNNING = 0 ]; then
+    echo "Cannot connect to admin API, aborting"
+    exit 1
+fi
+
+# Enable healthchecks using a kong endpoint
+curl -s -I http://localhost:8000/status | grep -q "200 OK"
+if [ $? != 0 ]; then
+    curl -s -X POST http://localhost:8001/apis \
+        -d name=status -d uris=/status -d methods=GET \
+        -d upstream_url=http://localhost:8001/status > /dev/null
+fi
+
 if [ "$EE_LICENSE" != "placeholder" ]; then
     echo "Configuring enterprise edition RBAC settings"
-    RUNNING=0
-    for I in 1 2 3 4 5; do
-        curl -s -I http://localhost:8001/status | grep -q "200 OK"
-        if [ $? = 0 ]; then
-            RUNNING=1
-            break
-        fi 
-        sleep 1
-    done
-
-    if [ $RUNNING = 0 ]; then
-        echo "Cannot connect to admin API, aborting"
-        exit 1
-    fi
 
     # Admin user
     curl -s -I http://localhost:8001/rbac/users/admin | grep -q "200 OK"
@@ -446,7 +445,7 @@ if [ "$EE_LICENSE" != "placeholder" ]; then
             -d name=monitor -d user_token=monitor > /dev/null
     fi
     
-    # Monitor permissions, role, and user for /status (ALB healthcheck)
+    # Monitor permissions, role, and user for ALB healthcheck
     curl -s -I http://localhost:8001/rbac/roles/monitor | grep -q "200 OK"
     if [ $? != 0 ]; then    
         curl -s -X POST http://localhost:8001/rbac/permissions \
@@ -459,9 +458,8 @@ if [ "$EE_LICENSE" != "placeholder" ]; then
             -d name=monitor -d user_token=monitor
         curl -s -X POST http://localhost:8001/rbac/users/monitor/roles \
             -d roles=monitor > /dev/null
-        curl -s -X POST http://localhost:8001/apis \
-            -d name=status -d uris=/status -d methods=GET \
-            -d upstream_url=http://localhost:8001/status > /dev/null
+
+        # Add authentication token for /status
         curl -s -X POST http://localhost:8001/apis/status/plugins \
             -d name=request-transformer-advanced \
             -d config.add.headers=Kong-Admin-Token:monitor > /dev/null
