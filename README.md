@@ -10,6 +10,36 @@ Required variables:
     ssl_cert_internal      SSL certificate domain name for the internal API HTTPS listener
     ssl_cert_internal_gui  SSL certificate domain name for the GUI HTTPS listener
 
+Example main.tf:
+
+    provider "aws" {
+      region  = "us-west-2"
+      profile = "zillow-dev"
+    }
+
+    module "kong" {
+      #source = "github.com/zillowgroup/kong-terraform"
+      source = "/home/dennisk/git/kong-terraform"
+
+      vpc_name              = "my-vpc"
+      environment           = "dev"
+      ec2_instance_type     = "t2.small"
+      ec2_ebs_optimized     = false
+      ec2_key_name          = "my-key"
+      ssl_cert_external     = "*.domain.name"
+      ssl_cert_internal     = "*.domain.name"
+      ssl_cert_internal_gui = "*.domain.name"
+
+      enable_internal_lb = true
+
+      db_instance_count = 1
+
+      tags = {
+         Owner = "devops@domain.name"
+         Team = "DevOps"
+      }
+    }
+
 Create the resources in AWS:
 
     terraform init

@@ -68,13 +68,37 @@ resource "aws_autoscaling_group" "kong" {
   }"]
 
   tags = ["${concat(
-      list(map(
-        "key", "Name", 
-        "value", format("%s-%s", var.service, var.environment), 
-        "propagate_at_launch", true
-      )),
+      list(
+        map(
+          "key", "Name", 
+          "value", format("%s-%s", var.service, var.environment), 
+          "propagate_at_launch", true
+        )
+      ),
+      list(
+        map(
+          "key", "Environment", 
+          "value", var.environment, 
+          "propagate_at_launch", true
+        )
+      ),
+      list(
+        map(
+          "key", "Description", 
+          "value", var.description, 
+          "propagate_at_launch", true
+        )
+      ),
+      list(
+        map(
+          "key", "Service", 
+          "value", var.service, 
+          "propagate_at_launch", true
+        )
+      ),
       local.tags
-  )}"]
+    )
+  }"]
 
   depends_on = [
     "aws_rds_cluster.kong"

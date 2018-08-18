@@ -34,10 +34,10 @@ echo "Done."
 echo "Installing Kong"
 EE_LICENSE=$(aws_get_parameter ee/license)
 EE_CREDS=$(aws_get_parameter ee/bintray-auth)
+echo "Auth: $EE_CREDS"
 if [ "$EE_LICENSE" != "placeholder" ]; then
-    curl -L \
+    curl -L https://kong.bintray.com/kong-enterprise-edition-deb/dists/${EE_PKG} \
         -u $EE_CREDS \
-        https://kong.bintray.com/kong-enterprise-edition-deb/dists/${EE_PKG} \
         -o ${EE_PKG} 
 
     if [ ! -f ${EE_PKG} ]; then
@@ -52,9 +52,7 @@ EOF
     chown root:kong /etc/kong/license.json
     chmod 640 /etc/kong/license.json
 else 
-    KONG_DEB_FILE=kong-community-edition-0.12.3.stretch.all.deb
-    curl -sL \
-        https://kong.bintray.com/kong-community-edition-deb/dists/${CE_PKG} \
+    curl -sL https://kong.bintray.com/kong-community-edition-deb/dists/${CE_PKG} \
         -o ${CE_PKG}
     dpkg -i ${CE_PKG}
 fi
