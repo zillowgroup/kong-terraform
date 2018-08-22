@@ -253,7 +253,7 @@ resource "aws_security_group_rule" "internal-lb-ingress-kong-http-api" {
   to_port   = 80
   protocol  = "tcp"
 
-  cidr_blocks = ["${var.internal_cidr_blocks}"]
+  cidr_blocks = ["${var.internal_http_cidr_blocks}"]
 }
 
 resource "aws_security_group_rule" "internal-lb-ingress-kong-https-api" {
@@ -264,7 +264,7 @@ resource "aws_security_group_rule" "internal-lb-ingress-kong-https-api" {
   to_port   = 443
   protocol  = "tcp"
 
-  cidr_blocks = ["${var.internal_cidr_blocks}"]
+  cidr_blocks = ["${var.internal_https_cidr_blocks}"]
 }
 
 resource "aws_security_group_rule" "internal-lb-ingress-kong-admin" {
@@ -277,7 +277,7 @@ resource "aws_security_group_rule" "internal-lb-ingress-kong-admin" {
   to_port   = 8444
   protocol  = "tcp"
 
-  cidr_blocks = ["${var.gui_cidr_blocks}"]
+  cidr_blocks = ["${var.admin_cidr_blocks}"]
 }
 
 resource "aws_security_group_rule" "internal-lb-ingress-kong-gui" {

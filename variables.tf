@@ -44,8 +44,26 @@ variable "external_cidr_blocks" {
   ]
 }
 
-variable "internal_cidr_blocks" {
-  description = "Internal ingress access to Kong API via the load balancer"
+variable "internal_http_cidr_blocks" {
+  description = "Internal ingress access to Kong API via the load balancer (HTTP)"
+  type        = "list"
+
+  default = [
+    "0.0.0.0/0",
+  ]
+}
+
+variable "internal_https_cidr_blocks" {
+  description = "Internal ingress access to Kong API via the load balancer (HTTPS)"
+  type        = "list"
+
+  default = [
+    "0.0.0.0/0",
+  ]
+}
+
+variable "admin_cidr_blocks" {
+  description = "Internal ingress access to Kong Admin API (Enterprise Edition only)"
   type        = "list"
 
   default = [
