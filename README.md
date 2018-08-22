@@ -1,5 +1,46 @@
 # ZG Kong Cluster Terraform Module
 
+[Kong API Gateway] (https://konghq.com/) is an API gateway microservices
+management layer. This is the terraform module used to provision Kong
+Clusters at Zillow Group and is available under the Apache License 2.0 
+license. Both Kong Community and Enterprise Edition are supported.
+
+By default, the following resources will be provisioned:
+
+- Auora PostgreSQL cluster for Kong configuration
+- An Auto Scaling Group (ASG) and EC2 instances running Kong (Kong nodes)
+- An external load balancer (HTTPS only)
+  - HTTPS:443 - Kong Proxy
+- An internal load balancer (HTTP and HTTPS)
+  - HTTP:80 - Kong Proxy
+  - HTTPS:443 - Kong Proxy
+  - HTTPS:8444 - Kong Admin API (Enterprise Edition only)
+  - HTTPS:8445 - Kong Admin GUI (Enterprise Edition only)
+- Security groups granting least privilege access to resources
+- An IAM instance profile for access to Kong specific SSM Parameter Store 
+  metadata and secrets
+
+Optionally, a redis cluster can be provisioned for rate-limiting counters 
+and caching, and most default resources can be disabled.  See variables.tf
+for a complete list of tunables. 
+
+The Kong nodes are based on [Minimal Ubuntu] (https://wiki.ubuntu.com/Minimal).
+Using cloud-init, the following is provisioned on top of the AMI:
+
+- A kong service user
+- Minimal set of dependancies and debugging tools
+- Kongfig for Kong configuration management
+- Kong, running under runit process supervision
+- Splunk plugin for Kong
+- Log rotation of Kong log files
+
+Prerequisites:
+
+- An AWS VPC
+- Private and public subnets labeled using the "Type" tag
+- An SSH Key
+- An SSL managed certificate to associate with HTTPS load balancers
+
 Required variables:
 
     vpc_name               VPC Name for the AWS account and region specified
@@ -31,7 +72,7 @@ Example main.tf:
 
       enable_internal_lb = true
 
-      db_instance_count = 1
+      db_instance_count = 3
 
       tags = {
          Owner = "devops@domain.name"
@@ -45,9 +86,21 @@ Create the resources in AWS:
     terraform plan -out kong.plan
     terraform apply kong.plan
 
-If installing enterprise edition, open the AWS console and navigate to:
+While resources are being provisioned, login to the AWS console and navigate
+to:
 
     EC2 -> Systems Manager Shared Resources -> Parameter Store
+
+Update the Kong database password parameter with one of your choosing:
+
+    /[service]/[environment]/db/password
+
+Note: You can generate a random, secure password using:
+
+    pwgen -s 16
+
+This step is manual to avoid checking in secrets into a repository. 
+Additionally, if installing Enterprise Edition:
 
 Update the license key by editing the parameter (default value is "placeholder"):
  
@@ -58,21 +111,11 @@ Update the Bintray authentication paramater (default value is "placeholder", for
 
     /[service]/[environment]/ee/bintray-auth
 
-Skip the above step for the community edition.
-
-For all editions, In the AWS console update the Parameter Store name with your Kong database password:
-
-    /[service]/[environment]/db/password
-
-Note: You can generate a random, secure password using:
-
-    pwgen -s 16
-
 To login to the EC2 instance(s):
 
-    ssh -i [/path/to/key/specified/in/variables.tf] admin@[ec2-instance]
+    ssh -i [/path/to/key/specified/in/ec2_key_name] ubuntu@[ec2-instance]
 
-After you login to an EC2 instance, it is highly recommended to update 
+After you login to an EC2 instance, it is **highly** recommended to update 
 the master PostgreSQL password using psql from the command line:
 
     PG_HOST=$(grep ^pg_host /etc/kong/kong.conf | cut -d= -f2 | awk '{print $1}')
@@ -83,4 +126,4 @@ Then update the key in the Parameter Store to the same value:
 
     /[service]/[environment]/db/password/master
 
-You are now ready to use Kongfig to manage APIs!
+You are now ready to manage APIs!
