@@ -116,18 +116,18 @@ variable "ec2_instance_type" {
   type        = "string"
 }
 
-variable "ec2_ebs_optimized" {
-  description = "Boolean to use EBS optimized volumes"
-  type        = "string"
-
-  default = true
-}
-
 variable "ec2_root_volume_size" {
   description = "Size of the root volume (in Gigabytes)"
   type        = "string"
 
   default = 8
+}
+
+variable "ec2_root_volume_type" {
+  description = "Type of the root volume (standard, gp2, or io)"
+  type        = "string"
+
+  default =  "gp2"
 }
 
 variable "ec2_key_name" {
