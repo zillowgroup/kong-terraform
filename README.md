@@ -1,13 +1,13 @@
 # ZG Kong Cluster Terraform Module
 
-[Kong API Gateway] (https://konghq.com/) is an API gateway microservices
+[Kong API Gateway](https://konghq.com/) is an API gateway microservices
 management layer. This is the terraform module used to provision Kong
-Clusters at Zillow Group and is available under the Apache License 2.0 
+clusters at Zillow Group, available under the Apache License 2.0 
 license. Both Kong Community and Enterprise Edition are supported.
 
 By default, the following resources will be provisioned:
 
-- Auora PostgreSQL cluster for Kong configuration
+- Auora PostgreSQL cluster for Kong's configuration store
 - An Auto Scaling Group (ASG) and EC2 instances running Kong (Kong nodes)
 - An external load balancer (HTTPS only)
   - HTTPS:443 - Kong Proxy
@@ -22,9 +22,9 @@ By default, the following resources will be provisioned:
 
 Optionally, a redis cluster can be provisioned for rate-limiting counters 
 and caching, and most default resources can be disabled.  See variables.tf
-for a complete list of tunables. 
+for a complete list and description of tunables. 
 
-The Kong nodes are based on [Minimal Ubuntu] (https://wiki.ubuntu.com/Minimal).
+The Kong nodes are based on [Minimal Ubuntu](https://wiki.ubuntu.com/Minimal).
 Using cloud-init, the following is provisioned on top of the AMI:
 
 - A kong service user
