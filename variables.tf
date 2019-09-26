@@ -1,18 +1,25 @@
 # Network settings
-variable "vpc_name" {
+variable "vpc" {
   description = "VPC Name for the AWS account and region specified"
   type        = "string"
 }
 
-variable "private_subnets" {
-  description = "'Type' tag on private subnets"
+variable "subnet_tag" {
+  description = "Tag used on subnets to define Tier"
   type        = "string"
 
-  default = "private-dynamic"
+  default = "Tier"
+}
+
+variable "private_subnets" {
+  description = "Subnet tag on private subnets"
+  type        = "string"
+
+  default = "private"
 }
 
 variable "public_subnets" {
-  description = "'Type' tag on public subnets for external load balancers"
+  description = "Subnet tag on public subnets for external load balancers"
   type        = "string"
 
   default = "public"
@@ -36,7 +43,7 @@ variable "bastion_cidr_blocks" {
 }
 
 variable "external_cidr_blocks" {
-  description = "External ingress access to Kong API via the load balancer"
+  description = "External ingress access to Kong Proxy via the load balancer"
   type        = "list"
 
   default = [
@@ -45,7 +52,7 @@ variable "external_cidr_blocks" {
 }
 
 variable "internal_http_cidr_blocks" {
-  description = "Internal ingress access to Kong API via the load balancer (HTTP)"
+  description = "Internal ingress access to Kong Proxy via the load balancer (HTTP)"
   type        = "list"
 
   default = [
@@ -54,7 +61,7 @@ variable "internal_http_cidr_blocks" {
 }
 
 variable "internal_https_cidr_blocks" {
-  description = "Internal ingress access to Kong API via the load balancer (HTTPS)"
+  description = "Internal ingress access to Kong Proxy via the load balancer (HTTPS)"
   type        = "list"
 
   default = [
@@ -63,7 +70,7 @@ variable "internal_https_cidr_blocks" {
 }
 
 variable "admin_cidr_blocks" {
-  description = "Internal ingress access to Kong Admin API (Enterprise Edition only)"
+  description = "Access to Kong Admin API (Enterprise Edition only)"
   type        = "list"
 
   default = [
@@ -71,8 +78,17 @@ variable "admin_cidr_blocks" {
   ]
 }
 
-variable "gui_cidr_blocks" {
-  description = "Internal ingress access to Kong GUI (Enterprise Edition only)"
+variable "manager_cidr_blocks" {
+  description = "Access to Kong Manager (Enterprise Edition only)"
+  type        = "list"
+
+  default = [
+    "0.0.0.0/0",
+  ]
+}
+
+variable "portal_cidr_blocks" {
+  description = "Access to Portal (Enterprise Edition only)"
   type        = "list"
 
   default = [
@@ -97,7 +113,7 @@ variable "service" {
   description = "Resource service tag"
   type        = "string"
 
-  default = "zg-kong-2-1"
+  default = "kong"
 }
 
 # Additional tags
@@ -110,8 +126,24 @@ variable "tags" {
 
 # Enterprise Edition
 variable "enable_ee" {
-  description = "Boolean to enable Kong Enterprise Edition settings (requires license key in SSM)"
+  description = "Boolean to enable Kong Enterprise Edition settings"
   type        = "string"
+
+  default = false
+}
+
+variable "ee_bintray_auth" {
+  description = "Bintray authentication for the Enterprise Edition download (Format: username:apikey)"
+  type        = "string"
+
+  default = "placeholder"
+}
+
+variable "ee_license" {
+  description = "Enterprise Edition license key (JSON format)"
+  type        = "string"
+
+  default = "placeholder"
 }
 
 # EC2 settings
@@ -132,6 +164,8 @@ variable "ec2_ami" {
 variable "ec2_instance_type" {
   description = "EC2 instance type"
   type        = "string"
+
+  default = "t2.micro"
 }
 
 variable "ec2_root_volume_size" {
@@ -157,21 +191,21 @@ variable "asg_max_size" {
   description = "The maximum size of the auto scale group"
   type        = "string"
 
-  default = 4
+  default = 3
 }
 
 variable "asg_min_size" {
   description = "The minimum size of the auto scale group"
   type        = "string"
 
-  default = 2
+  default = 1
 }
 
 variable "asg_desired_capacity" {
   description = "The number of instances that should be running in the group"
   type        = "string"
 
-  default = 3
+  default = 2
 }
 
 variable "asg_health_check_grace_period" {
@@ -187,14 +221,14 @@ variable "ee_pkg" {
   description = "Filename of the Enterprise Edition package"
   type        = "string"
 
-  default = "kong-enterprise-edition-0.31-1.zesty.all.deb"
+  default = "kong-enterprise-edition-0.36-2.bionic.all.deb"
 }
 
 variable "ce_pkg" {
   description = "Filename of the Community Edition package"
   type        = "string"
 
-  default = "kong-community-edition-0.12.3.zesty.all.deb"
+  default = "kong-1.3.0.bionic.amd64.deb"
 }
 
 # Load Balancer settings
@@ -276,17 +310,27 @@ variable "idle_timeout" {
 }
 
 variable "ssl_cert_external" {
-  description = "SSL certificate domain name for the external API HTTPS listener"
+  description = "SSL certificate domain name for the external Kong Proxy HTTPS listener"
   type        = "string"
 }
 
 variable "ssl_cert_internal" {
-  description = "SSL certificate domain name for the internal API HTTPS listener"
+  description = "SSL certificate domain name for the internal Kong Proxy HTTPS listener"
   type        = "string"
 }
 
-variable "ssl_cert_internal_gui" {
-  description = "SSL certificate domain name for the GUI HTTPS listener"
+variable "ssl_cert_admin" {
+  description = "SSL certificate domain name for the Kong Admin API HTTPS listener"
+  type        = "string"
+}
+
+variable "ssl_cert_manager" {
+  description = "SSL certificate domain name for the Kong Manager HTTPS listener"
+  type        = "string"
+}
+
+variable "ssl_cert_portal" {
+  description = "SSL certificate domain name for the Dev Portal listener"
   type        = "string"
 }
 
@@ -318,26 +362,63 @@ variable "http_5xx_count" {
 
   default = 50
 }
+
 # Datastore settings
+variable "enable_aurora" {
+  description = "Boolean to enable Aurora"
+  type        = "string"
+
+  default = "false"
+}
+
+variable "db_engine_version" {
+  description = "Database engine version"
+  type        = "string"
+
+  default = "11.4"
+}
+
+variable "db_engine_mode" {
+  description = "Engine mode for Aurora"
+  type        = "string"
+
+  default = "provisioned"
+}
+
+variable "db_family" {
+  description = "Database parameter group family"
+  type        = "string"
+
+  default = "postgres11"
+}
+
 variable "db_instance_class" {
   description = "Database instance class"
   type        = "string"
 
-  default = "db.r4.large"
+  default = "db.t2.micro"
 }
 
 variable "db_instance_count" {
   description = "Number of database instances (0 to leverage an existing db)"
   type        = "string"
 
-  default = 2
+  default = 1
 }
 
-variable "db_host" {
-  description = "Database host name/endpoint if using an existing Aurora cluster"
+variable "db_storage_size" {
+  description = "Size of the database storage in Gigabytes"
   type        = "string"
 
-  default = "placeholder"
+  # 20 is the minimum
+  default = 20
+}
+
+variable "db_storage_type" {
+  description = "Type of the database storage"
+  type        = "string"
+
+  default = "gp2"
 }
 
 variable "db_username" {
@@ -347,18 +428,18 @@ variable "db_username" {
   default = "root"
 }
 
-variable "db_password" {
-  description = "Initial database master password"
-  type        = "string"
-
-  default = "zg-kong-2-1"
-}
-
 variable "db_subnets" {
   description = "Database instance subnet group name"
   type        = "string"
 
   default = "db-subnets"
+}
+
+variable "db_multi_az" {
+  description = "Boolean to specify if RDS is multi-AZ"
+  type        = "string"
+
+  default = false
 }
 
 variable "db_backup_retention_period" {
@@ -381,6 +462,20 @@ variable "redis_instance_type" {
   type        = "string"
 
   default = "cache.t2.small"
+}
+
+variable "redis_engine_version" {
+  description = "Redis engine version"
+  type        = "string"
+
+  default = "5.0.5"
+}
+
+variable "redis_family" {
+  description = "Redis parameter group family"
+  type        = "string"
+
+  default = "redis5.0"
 }
 
 variable "redis_instance_count" {
