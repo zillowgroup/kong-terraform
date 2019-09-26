@@ -11,35 +11,34 @@ data "aws_iam_policy_document" "kong-ssm" {
 
   statement {
     actions   = ["kms:Decrypt"]
-    resources = ["${aws_kms_alias.kong.target_key_arn}"]
+    resources = [aws_kms_alias.kong.target_key_arn]
   }
 }
 
 resource "aws_iam_role_policy" "kong-ssm" {
-  name = "${var.service}-${var.environment}-ssm"
-  role = "${aws_iam_role.kong.id}"
+  name = format("%s-%s-ssm", var.service, var.environment)
+  role = aws_iam_role.kong.id
 
-  policy = "${data.aws_iam_policy_document.kong-ssm.json}"
+  policy = data.aws_iam_policy_document.kong-ssm.json
 }
 
 data "aws_iam_policy_document" "kong" {
   statement {
     actions = ["sts:AssumeRole"]
 
-    principals = {
-      type = "Service"
-
+    principals {
+      type        = "Service"
       identifiers = ["ec2.amazonaws.com"]
     }
   }
 }
 
 resource "aws_iam_role" "kong" {
-  name               = "${var.service}-${var.environment}"
-  assume_role_policy = "${data.aws_iam_policy_document.kong.json}"
+  name               = format("%s-%s", var.service, var.environment)
+  assume_role_policy = data.aws_iam_policy_document.kong.json
 }
 
 resource "aws_iam_instance_profile" "kong" {
-  name = "${var.service}-${var.environment}"
-  role = "${aws_iam_role.kong.id}"
+  name = format("%s-%s", var.service, var.environment)
+  role = aws_iam_role.kong.id
 }

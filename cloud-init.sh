@@ -16,17 +16,21 @@ echo unattended-upgrades unattended-upgrades/enable_auto_updates boolean true \
 dpkg-reconfigure -f noninteractive unattended-upgrades
 echo "Done."
 
-# Install kongfig
-echo "Installing Kongfig"
-npm install -g kongfig
-echo "Done."
+# Installing decK
+# https://github.com/hbagdi/deck
+curl -sL https://github.com/hbagdi/deck/releases/download/v0.5.2/deck_0.5.2_linux_amd64.tar.gz \
+    -o deck.tar.gz
+tar zxf deck.tar.gz deck
+sudo mv deck /usr/local/bin
+sudo chown root:kong /usr/local/bin/deck
+sudo chmod 755 /usr/local/bin/deck
 
 # Install Kong
 echo "Installing Kong"
 EE_LICENSE=$(aws_get_parameter ee/license)
 EE_CREDS=$(aws_get_parameter ee/bintray-auth)
 if [ "$EE_LICENSE" != "placeholder" ]; then
-    curl -L https://kong.bintray.com/kong-enterprise-edition-deb/dists/${EE_PKG} \
+    curl -sL https://kong.bintray.com/kong-enterprise-edition-deb/dists/${EE_PKG} \
         -u $EE_CREDS \
         -o ${EE_PKG} 
 
@@ -41,8 +45,8 @@ $EE_LICENSE
 EOF
     chown root:kong /etc/kong/license.json
     chmod 640 /etc/kong/license.json
-else 
-    curl -sL https://kong.bintray.com/kong-community-edition-deb/dists/${CE_PKG} \
+else  
+    curl -sL "https://bintray.com/kong/kong-deb/download_file?file_path=${CE_PKG}" \
         -o ${CE_PKG}
     dpkg -i ${CE_PKG}
 fi
@@ -100,13 +104,10 @@ pg_database = $DB_NAME
 real_ip_header = X-Forwarded-For
 trusted_ips = 0.0.0.0/0
 
+# SSL terminiation is performed by load balancers
+proxy_listen = 0.0.0.0:8000
 # For /status to load balancers
 admin_listen = 0.0.0.0:8001
-
-# SSL is performed by load balancers
-ssl = off
-admin_ssl = off
-admin_gui_ssl = off
 
 # Add splunk plugin
 custom_plugins = splunk-log
@@ -116,8 +117,17 @@ chgrp kong /etc/kong/kong.conf
 
 if [ "$EE_LICENSE" != "placeholder" ]; then
     echo "" >> /etc/kong/kong.conf
-    echo "# Enterprise Edition Settings" >> /etc/kong/kong.conf
-    echo "vitals = on" >> /etc/kong/kong.conf
+    cat <<EOF >> /etc/kong/kong.conf
+
+# Enterprise Edition Settings
+# SSL terminiation is performed by load balancers
+admin_gui_listen  = 0.0.0.0:8002
+portal_gui_listen = 0.0.0.0:8003
+portal_api_listen = 0.0.0.0:8004
+ 
+vitals = on 
+portal = on
+EOF
 
     for DIR in gui lib portal; do
         chown -R kong:kong /usr/local/kong/$DIR
@@ -133,7 +143,7 @@ echo "Done."
 
 # Initialize Kong
 echo "Initializing Kong"
-sudo -u kong kong migrations up
+sudo -u kong kong migrations bootstrap
 sudo -u kong kong prepare
 echo "Done."
 
@@ -419,26 +429,37 @@ for I in 1 2 3 4 5; do
 done
 
 if [ $RUNNING = 0 ]; then
-    echo "Cannot connect to admin API, aborting"
+    echo "Cannot connect to admin API, avoiding further configuration."
     exit 1
 fi
 
 # Enable healthchecks using a kong endpoint
 curl -s -I http://localhost:8000/status | grep -q "200 OK"
 if [ $? != 0 ]; then
-    curl -s -X POST http://localhost:8001/apis \
-        -d name=status -d uris=/status -d methods=GET \
-        -d upstream_url=http://localhost:8001/status > /dev/null
+    curl -s -X POST http://localhost:8001/services \
+        -d name=status \
+        -d host=localhost \
+        -d port=8001 \
+        -d path=/status > /dev/null
+    curl -s -X POST http://localhost:8001/services/status/routes \
+        -d name=status \
+        -d methods=GET \
+        -d 'paths[]=/status' > /dev/null
+    curl -s -X POST http://localhost:8001/services/status/plugins \
+        -d name=ip-restriction \
+        -d "config.whitelist=127.0.0.1" \
+        -d "config.whitelist=${VPC_CIDR_BLOCK}" > /dev/null
 fi
 
 if [ "$EE_LICENSE" != "placeholder" ]; then
     echo "Configuring enterprise edition RBAC settings"
+    ADMIN_TOKEN=$(aws_get_parameter "admin/token")
 
     # Admin user
     curl -s -I http://localhost:8001/rbac/users/admin | grep -q "200 OK"
     if [ $? != 0 ]; then
         curl -X POST http://localhost:8001/rbac/users \
-            -d name=admin -d user_token=zg-kong-2-1 > /dev/null
+            -d name=admin -d user_token=$ADMIN_TOKEN > /dev/null
         curl -X POST http://localhost:8001/rbac/users/admin/roles \
             -d roles=super-admin > /dev/null
         curl -X POST http://localhost:8001/rbac/users \
@@ -460,9 +481,9 @@ if [ "$EE_LICENSE" != "placeholder" ]; then
             -d roles=monitor > /dev/null
 
         # Add authentication token for /status
-        curl -s -X POST http://localhost:8001/apis/status/plugins \
+        curl -s -X POST http://localhost:8001/services/status/plugins \
             -d name=request-transformer-advanced \
-            -d config.add.headers=Kong-Admin-Token:monitor > /dev/null
+            -d 'config.add.headers[]=Kong-Admin-Token:monitor' > /dev/null
     fi
 
     sv stop /etc/sv/kong 
