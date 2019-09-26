@@ -126,10 +126,24 @@ variable "tags" {
 
 # Enterprise Edition
 variable "enable_ee" {
-  description = "Boolean to enable Kong Enterprise Edition settings (requires license key in SSM)"
+  description = "Boolean to enable Kong Enterprise Edition settings"
   type        = "string"
 
   default = false
+}
+
+variable "ee_bintray_auth" {
+  description = "Bintray authentication for the Enterprise Edition download (Format: username:apikey)"
+  type        = "string"
+
+  default = "placeholder"
+}
+
+variable "ee_license" {
+  description = "Enterprise Edition license key (JSON format)"
+  type        = "string"
+
+  default = "placeholder"
 }
 
 # EC2 settings

@@ -20,7 +20,7 @@ resource "aws_kms_alias" "kong" {
 resource "aws_ssm_parameter" "ee-bintray-auth" {
   name  = format("/%s/%s/ee/bintray-auth", var.service, var.environment)
   type  = "SecureString"
-  value = "placeholder"
+  value = var.ee_bintray_auth
 
   key_id = aws_kms_alias.kong.target_key_arn
 
@@ -32,7 +32,7 @@ resource "aws_ssm_parameter" "ee-bintray-auth" {
 resource "aws_ssm_parameter" "ee-license" {
   name  = format("/%s/%s/ee/license", var.service, var.environment)
   type  = "SecureString"
-  value = "placeholder"
+  value = var.ee_license
 
   key_id = aws_kms_alias.kong.target_key_arn
 
